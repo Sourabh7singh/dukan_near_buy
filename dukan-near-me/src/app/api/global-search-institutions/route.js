@@ -34,7 +34,7 @@ function getClosestMatch(word, options) {
 
 function getBoundingBox(lat, lon, radiusInKm) {
   const latR = radiusInKm / 111.32;
-  const lonR = radiusInKm / (111.32 * Math.cos(lat * (Math.PI / 180)));
+  const lonR = radiusInKm / (111.32 * Math.cos((lat * Math.PI) / 180));
   return {
     minLat: lat - latR,
     maxLat: lat + latR,
@@ -64,7 +64,6 @@ export async function GET(req) {
     { firmName: { contains: word, mode: 'insensitive' } },
     { shopAddress: { contains: word, mode: 'insensitive' } },
     { landmark: { contains: word, mode: 'insensitive' } },
-    { hashtags: { has: word.toLowerCase() } },
     { houseNumber: { contains: word, mode: 'insensitive' } },
     { street: { contains: word, mode: 'insensitive' } },
     { buildingName: { contains: word, mode: 'insensitive' } },
@@ -73,7 +72,8 @@ export async function GET(req) {
 
   const useRange = rangeParam !== 'all' && !isNaN(lat) && !isNaN(lon) && !isNaN(parseFloat(rangeParam));
   let locationFilter = {};
-
+  console.log("USer range: ",useRange);
+  console.log("Conditions range: ",conditions);
   if (useRange) {
     const range = parseFloat(rangeParam);
     const box = getBoundingBox(lat, lon, range);
@@ -83,14 +83,11 @@ export async function GET(req) {
     };
   }
 
-  // Step 1: Get users based on search and location filters
+  // Step 1: Get users based on search and location filters (without hashtags filter)
   const users = await prisma.user.findMany({
     where: {
       role: { in: ['INSTITUTION', 'SHOP_OWNER'] },
-      AND: [
-        { OR: conditions },
-        ...(useRange ? [locationFilter] : []),
-      ],
+      AND: [{ OR: conditions }, ...(useRange ? [locationFilter] : [])],
     },
     select: {
       id: true,
@@ -121,8 +118,26 @@ export async function GET(req) {
     },
   });
 
+  console.log("Users length is: ",users?.length)
+
+
+  function normalize(str) {
+    return (str || '').toLowerCase().replace(/^#+/, '').replace(/\s+/g, '');
+  }
+
+  const normalizedKeywords = keywords.map(normalize);
+  
+  const filteredUsers = users.filter(user =>
+    Array.isArray(user.hashtags) &&
+    user.hashtags.some(tag =>
+      normalizedKeywords.some(kw => normalize(tag).includes(kw))
+    )
+  );
+
+
+
   // Step 2: Fetch PaidProfile notes for matched user IDs
-  const userIds = users.map(u => u.id);
+  const userIds = filteredUsers.map((u) => u.id);
   const paidProfiles = await prisma.paidProfile.findMany({
     where: {
       userId: { in: userIds },
@@ -133,10 +148,10 @@ export async function GET(req) {
     },
   });
 
-  const notesMap = new Map(paidProfiles.map(p => [p.userId, p.notes]));
+  const notesMap = new Map(paidProfiles.map((p) => [p.userId, p.notes]));
 
   // Step 3: Add notes to users if available
-  const enrichedUsers = users.map(user => ({
+  const enrichedUsers = filteredUsers.map((user) => ({
     ...user,
     notes: notesMap.get(user.id) || null,
   }));

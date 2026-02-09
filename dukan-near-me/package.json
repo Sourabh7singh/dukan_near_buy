@@ -68,7 +68,7 @@
     "@types/react": "19.1.2",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
-    "prisma": "^6.7.0",
+    "prisma": "^7.3.0",
     "tailwindcss": "^4"
   }
 }
