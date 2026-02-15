@@ -8,7 +8,7 @@ export const initiateSocket = () => {
   if (!socket) {
     socket = io(process.env.NEXT_PUBLIC_SOCKET_URL,{transports: ["websocket"]});
   }
-  console.log(socket);
+  console.log("Socket initiated: ",socket);
   return socket;
 };
 
