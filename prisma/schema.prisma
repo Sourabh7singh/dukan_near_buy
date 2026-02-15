@@ -1,11 +1,14 @@
 datasource db {
   provider = "mongodb"
+  url      = env("DATABASE_URL")
 }
 
+
 generator client {
-  provider = "prisma-client"
-  output   = "../app/generated/prisma"
+  provider = "prisma-client-js"
 }
+
+
 model PaymentHistory {
   id          String   @id @default(auto()) @map("_id") @db.ObjectId
   senderId    String   @db.ObjectId
