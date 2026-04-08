@@ -1,43 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# NearbuyDukan 🛒🏥
 
-## Getting Started
+**The Hyperlocal Digital Ecosystem** connecting local consumers with shops and healthcare institutions. 
 
-First, run the development server:
+NearbuyDukan bridges the gap between everyday users and local businesses by offering a modernized platform for virtual queue management, digital billing, live interactions, and secure records—eliminating waiting times and paper receipts.
+
+---
+
+## 🚀 Features at a Glance
+
+### For Consumers & Patients
+* **Live Token Queue Tracking:** Book a virtual token from home and arrive exactly when it's your turn.
+* **Location-Based Discovery:** Explore and find nearby registered shops & healthcare centers on a live map.
+* **Medical History Vault:** Securely upload, store, and manage family medical reports bound digitally to your profile.
+* **Direct Vendor Chat:** Message shop owners and doctors instantly using our built-in real-time chat.
+
+### For Shops & Healthcare Providers
+* **Digital Invoice Generation:** Generate robust, tax-friendly "Short Bills" and send them directly to customers digitally.
+* **Automated Record Keeping:** Manage daily queues, customer histories, and services in a centralized dashboard.
+* **QR Connectivity:** Custom QR codes to allow customers to instantly connect, request tokens, or seamlessly pay.
+
+---
+
+## 🛠 Under the Hood (Tech Stack)
+
+Architected for rapid response, real-time performance, and secure data handling:
+
+- **Framework:** [Next.js App Router](https://nextjs.org) for SSR & Static SEO optimizations.
+- **Database:** [MongoDB](https://www.mongodb.com/) combined with [Prisma ORM](https://www.prisma.io/) (v6) for flexible & type-safe schemas.
+- **Real-Time Engine:** [Socket.io](https://socket.io/) handling live unidirectional & bidirectional interactions (Queue status & Chat).
+- **Authentication:** [NextAuth.js](https://next-auth.js.org/) handling strict, role-based workflows (User, Shop, Institution).
+- **Styling & UI:** [Tailwind CSS](https://tailwindcss.com/) alongside [Framer Motion](https://www.framer.com/motion/) for fluid animations.
+
+---
+
+## 💻 Developer Setup 
+
+### 1. Prerequisites 
+Ensure you have `Node.js` installed and optionally `pnpm` for package management.
+
+### 2. Environment Variables
+Create a `.env` file at the root of the project with your authentication secrets, MongoDB URI, Cloudinary keys, and NextAuth URLs. 
+
+### 3. Install & Database Sync
+Run the following to install packages and sync your Prisma schema up to MongoDB. 
+*(Note: Be sure to use Prisma 6 as v7 removes the `url` property feature used in this project's schema.)*
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# Install dependencies
+pnpm install
+
+# Generate Prisma Client & Push to DB
+npx prisma@6 generate
+npx prisma@6 db push
 ```
 
+### 4. Run the Development Server
+
+```bash
+pnpm run dev
+# or
+npm run dev
+```
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🔒 Middleware & Authentication Notes
 
-## Learn More
+Access control is strongly handled via NextAuth's `withAuth` and custom generic paths. This ensures routing integrity across the three main user types (User, Institution, Shop Owner).
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-
-
-
-## Add middleware -
+```javascript
 import { withAuth } from "next-auth/middleware";
 
 export default withAuth({
@@ -47,13 +79,8 @@ export default withAuth({
   callbacks: {
     authorized: async ({ token, req }) => {
       const path = req.nextUrl.pathname;
-
-      // if (path === "/" || path === "/dashboard") return true;
-
       if (!token) return false;
-
       if (token.role === "admin") return true;
-
       return token.allowedRoutes?.includes(path);
     },
   },
@@ -62,3 +89,10 @@ export default withAuth({
 export const config = {
   matcher: ["/", "/dashboard/:path*", "/admin/:path*", "/content/:path*"],
 };
+```
+
+---
+
+<p align="center">
+  <i>Architected & Engineered By <a href="https://github.com/Sourabh7singh">Saurabh Singh</a></i>
+</p>
